@@ -2,3 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+
+.bg-login {
+  background: rgb(5,157,178);
+background: linear-gradient(90deg, rgba(5,157,178,1) 34%, rgba(50,186,255,1) 59%, rgba(173,230,246,1) 100%, rgba(0,212,255,1) 100%);
+}

@@ -14,10 +14,9 @@ function LoginForm() {
     };
     return (
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <Input type="email" placeholder="Email/CC" value={email} onChange={(e) => setEmail(e.target.value)} />
             <PasswordInput placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
-            <Button>Login</Button>
-            <Link href="/register" className="text-center text-customBlue">Crea una cuenta</Link>
+            <Button>Ingresar</Button>
         </form>
     );
 }
