@@ -1,18 +1,60 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { TransitRoute } from "@/types/transitRoute/transitRoute";
 import MapDisplay from "./MapDsiplay";
 
 type RouteSelectorProps = {
   routes: TransitRoute[];
   onClose: () => void;
-  apiKey: string;
 };
 
-const RouteSelector = ({ routes, onClose, apiKey }: RouteSelectorProps) => {
+const RouteSelector = ({ routes, onClose }: RouteSelectorProps) => {
   const [selectedRoute, setSelectedRoute] = useState<TransitRoute | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleRouteChange = (route: TransitRoute) => {
+    setIsLoading(true);
+
+    startTransition(() => {
+      setSelectedRoute(null); // reset before change for visual clarity
+      setSelectedTime(null);
+
+      // Simula delay visible
+      setTimeout(() => {
+        setSelectedRoute(route);
+        setIsLoading(false);
+      }, 800); // cambia este valor si quieres más o menos tiempo
+    });
+  };
+
+  const getTimeStatus = (timeStr: string) => {
+    const now = new Date();
+    const [hours, minutes] = timeStr.split(":").map(Number);
+    const time = new Date();
+    time.setHours(hours, minutes, 0, 0);
+
+    if (selectedTime === timeStr) return "selected";
+    if (time < now) return "past";
+    return "upcoming";
+  };
+
+  const getTimeButtonClass = (timeStr: string) => {
+    const status = getTimeStatus(timeStr);
+
+    switch (status) {
+      case "selected":
+        return "bg-green-500 text-white";
+      case "past":
+        return "bg-red-500 text-white";
+      case "upcoming":
+        return "bg-blue-500 text-white";
+      default:
+        return "";
+    }
+  };
 
   return (
     <>
@@ -25,35 +67,36 @@ const RouteSelector = ({ routes, onClose, apiKey }: RouteSelectorProps) => {
             <li
               key={route.name}
               className="text-center py-2 border-b last:border-none hover:bg-gray-100 cursor-pointer"
-              onClick={() => setSelectedRoute(route)}
+              onClick={() => handleRouteChange(route)}
             >
               {route.name}
             </li>
           ))}
         </ul>
 
-        {selectedRoute && (
-          <>
-            <h3 className="text-center font-semibold mt-4">Selecciona un horario</h3>
-            <ul className="mt-2">
-              {selectedRoute.schedules.map((time) => (
-                <li
-                  key={time}
-                  className={`text-center py-2 border-b last:border-none hover:bg-gray-100 cursor-pointer ${
-                    selectedTime === time ? "font-bold text-blue-500" : ""
-                  }`}
-                  onClick={() => setSelectedTime(time)}
-                >
-                  {time}
-                </li>
-              ))}
-            </ul>
-          </>
+        {isLoading ? (
+          <div className="text-center py-4 text-sm text-gray-500 animate-pulse">Cargando horarios...</div>
+        ) : (
+          selectedRoute && (
+            <>
+              <h3 className="text-center font-semibold mt-4">Selecciona un horario</h3>
+              <ul className="mt-2 space-y-2">
+                {selectedRoute.schedules.map((time) => (
+                  <li key={time}>
+                    <button
+                      onClick={() => setSelectedTime(time)}
+                      className={`w-full py-2 rounded ${getTimeButtonClass(time)} transition-colors duration-200`}
+                    >
+                      {time}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )
         )}
 
-        {selectedRoute && selectedTime && (
-          <MapDisplay route={selectedRoute} selectedTime={selectedTime} apiKey={apiKey} />
-        )}
+        {selectedRoute && selectedTime && <MapDisplay route={selectedRoute} selectedTime={selectedTime} />}
       </div>
     </>
   );
